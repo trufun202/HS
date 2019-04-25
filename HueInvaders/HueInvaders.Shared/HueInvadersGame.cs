@@ -1,9 +1,16 @@
 ﻿#region Using Statements
 using System;
-
+using HueInvaders.Shared.Background;
+using HueInvaders.Shared.Enums;
+using HueInvaders.Shared.Handlers;
+using HueInvaders.Shared.Models;
+using HueInvaders.Shared.Screens;
+using HueInvaders.Shared.ScreenTransitions;
+using HueInvaders.Shared.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Input.Touch;
 
 #endregion
 
@@ -14,8 +21,17 @@ namespace HueInvaders
     /// </summary>
     public class HueInvadersGame : Game
     {
+        RenderTarget2D renderTarget;
+        int ScreenHeight = 0;
+        int ScreenWidth = 0;
+        TouchCollection currentTouchCollection;
+        TouchCollection previousTouchCollection;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        FadeTransition Fade;
+        IBackground currentBackground;
+        Screen CurrentScreen = Screen.Gameplay;
+        GamePlayScreen GamePlayScreen;
 
         public HueInvadersGame()
         {
@@ -32,8 +48,38 @@ namespace HueInvaders
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             base.Initialize();
+
+            ScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            ScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+
+            graphics.PreferredBackBufferHeight = ScreenHeight;
+            graphics.PreferredBackBufferWidth = ScreenWidth;
+
+            graphics.IsFullScreen = true;
+            graphics.ApplyChanges();
+
+            renderTarget = new RenderTarget2D(
+                graphics.GraphicsDevice,
+                Defaults.GraphicsWidth,
+                Defaults.GraphicsHeight,
+                false,
+                graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
+                DepthFormat.Depth24);
+
+            var scaleX = (double)ScreenWidth / (double)Defaults.GraphicsWidth;
+            var scaleY = (double)ScreenHeight / (double)Defaults.GraphicsHeight;
+
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(graphics.GraphicsDevice);
+
+            Fade = new FadeTransition(Color.White, null);
+            GamePlayScreen = new GamePlayScreen(scaleX, scaleY);
+            GamePlayScreen.Reset();
+
+            currentBackground = new StarField(100);
+
+            previousTouchCollection = TouchPanel.GetState();
         }
 
         /// <summary>
@@ -42,10 +88,8 @@ namespace HueInvaders
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            //TODO: use this.Content to load your game content here
+            ContentHandler.PreInit(Content);
+            ContentHandler.Init(Content);
         }
 
         /// <summary>
@@ -55,14 +99,34 @@ namespace HueInvaders
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            // For Mobile devices, this logic will close the Game when the Back button is pressed
-            // Exit() is obsolete on iOS
-            //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            //    Keyboard.GetState().IsKeyDown(Keys.Escape))
-            //{
-            //    Exit();
-            //}
-            // TODO: Add your update logic here			
+            if (Fade.ShowingFade)
+            {
+                Fade.Update(gameTime);
+            }
+            else
+            {
+                ////////////////////////////////////////////////
+                //HANDLE INPUT
+                ////////////////////////////////////////////////
+                currentTouchCollection = TouchPanel.GetState();
+
+                if (CurrentScreen == Screen.Gameplay)
+                {
+                    GamePlayScreen.HandleInput(previousTouchCollection, currentTouchCollection, gameTime);
+                }
+
+                previousTouchCollection = currentTouchCollection;
+
+                ////////////////////////////////////////////////
+                //UPDATES
+                ////////////////////////////////////////////////
+                if (CurrentScreen == Screen.Gameplay)
+                {
+                    currentBackground.Update(gameTime);
+                    GamePlayScreen.Update(gameTime);
+                }
+            }
+
             base.Update(gameTime);
         }
 
@@ -72,9 +136,29 @@ namespace HueInvaders
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            graphics.GraphicsDevice.SetRenderTarget(renderTarget);
+            graphics.GraphicsDevice.Clear(Defaults.SpaceBlue);
+            spriteBatch.Begin();
 
-            //TODO: Add your drawing code here
+            if (CurrentScreen == Screen.Gameplay)
+            {
+                currentBackground.Draw(spriteBatch);
+                GamePlayScreen.Draw(spriteBatch);
+            }
+
+            if (Fade.ShowingFade)
+            {
+                Fade.Draw(spriteBatch);
+            }
+
+            spriteBatch.End();
+
+            graphics.GraphicsDevice.SetRenderTarget(null);
+            graphics.GraphicsDevice.Clear(Color.Black);
+            spriteBatch.Begin();
+            spriteBatch.Draw(renderTarget, new Rectangle(0, 0, ScreenWidth, ScreenHeight), Color.White);
+            spriteBatch.End();
+
             base.Draw(gameTime);
         }
     }
