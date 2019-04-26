@@ -16,7 +16,7 @@ namespace HueInvaders.Shared.Screens
 
         public GamePlayScreen(double scaleX, double scaleY)
         {
-            playerShip = new PlayerShip();
+            playerShip = new PlayerShip(scaleX, scaleY);
             FormColors = new Form(0, 0);
 
             FormColors.Controls.Add(new Button(new Rectangle(0, Defaults.GraphicsHeight - ContentHandler.Images["ColorButton_On"].Height, ContentHandler.Images["ColorButton_On"].Width, ContentHandler.Images["ColorButton_On"].Height), () =>

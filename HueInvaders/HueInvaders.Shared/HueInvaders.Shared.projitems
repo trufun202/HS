@@ -42,6 +42,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Screens\IScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Screens\GamePlayScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ControlledSoundEffect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Projectiles\BulletOne.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Interfaces\IProjectile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Interfaces\IGun.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Guns\PlayerBlaster.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Content\" />
@@ -51,6 +55,8 @@
     <Folder Include="$(MSBuildThisFileDirectory)Background\" />
     <Folder Include="$(MSBuildThisFileDirectory)Background\Components\" />
     <Folder Include="$(MSBuildThisFileDirectory)Screens\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Models\Projectiles\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Models\Guns\" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
